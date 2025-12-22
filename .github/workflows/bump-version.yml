@@ -1,0 +1,242 @@
+name: Bump Version and Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install uv
+        run: python -m pip install uv
+
+      - name: Install toml
+        run: pip install toml
+
+      - name: Bump version
+        id: bump_version
+        run: |
+          import toml
+          import json
+          import os
+          import subprocess
+          
+          # Read current version from pyproject.toml
+          with open('pyproject.toml', 'r') as f:
+              data = toml.load(f)
+          
+          current_version = data['project']['version']
+          print(f"Current version: {current_version}")
+          
+          # Get the latest tag from remote to avoid conflicts
+          try:
+              subprocess.run(['git', 'fetch', '--tags'], check=True)
+              latest_tag = subprocess.check_output(['git', 'describe', '--tags', '--abbrev=0'], text=True).strip()
+              if latest_tag.startswith('v'):
+                  latest_tag = latest_tag[1:]
+              print(f"Latest remote tag version: {latest_tag}")
+              
+              # Use the latest tag version if it's newer than the current version
+              if latest_tag > current_version:
+                  print(f"Remote tag version {latest_tag} is newer than current version {current_version}")
+                  new_version = latest_tag
+              else:
+                  # Split version into parts and increment patch version
+                  major, minor, patch = map(int, current_version.split('.'))
+                  patch += 1
+                  new_version = f"{major}.{minor}.{patch}"
+                  print(f"New version: {new_version}")
+          except Exception as e:
+              print(f"Error fetching remote tags: {e}")
+              # Fallback to local version increment
+              major, minor, patch = map(int, current_version.split('.'))
+              patch += 1
+              new_version = f"{major}.{minor}.{patch}"
+              print(f"Fallback to new version: {new_version}")
+          
+          # Update pyproject.toml
+          data['project']['version'] = new_version
+          with open('pyproject.toml', 'w') as f:
+              toml.dump(data, f)
+          
+          # 使用新的 GITHUB_OUTPUT 语法
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f'new_version={new_version}\n')
+        shell: python
+
+      - name: Debug output
+        run: |
+          echo "bump_version.new_version: ${{ steps.bump_version.outputs.new_version }}}"
+          if [ -z "${{ steps.bump_version.outputs.new_version }}" ]; then
+            echo "ERROR: new_version is empty!"
+            exit 1
+          fi
+
+      - name: Commit and push version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml
+          git commit -m "Bump version to v${{ steps.bump_version.outputs.new_version }}}"
+          git push origin main
+
+      - name: Create tag
+        id: create_tag
+        run: |
+          # 先检查版本是否有效
+          new_version="${{ steps.bump_version.outputs.new_version }}"
+          echo "New version from previous step: $new_version"
+          
+          if [ -z "$new_version" ]; then
+            echo "ERROR: new_version is empty!"
+            exit 1
+          fi
+          
+          tag_name="v${new_version}"
+          echo "Creating tag: $tag_name"
+          
+          # 验证 tag 格式
+          if [[ ! $tag_name =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "ERROR: Invalid tag format: $tag_name"
+            exit 1
+          fi
+          
+          git tag $tag_name
+          git push origin $tag_name
+          
+          # 使用新的 GITHUB_OUTPUT 语法
+          echo "tag_name=$tag_name" >> $GITHUB_OUTPUT
+
+    outputs:
+      tag_name: ${{ steps.create_tag.outputs.tag_name }}
+      new_version: ${{ steps.bump_version.outputs.new_version }}
+
+  build-package:
+    needs: bump-version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.bump-version.outputs.tag_name }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install uv
+        run: python -m pip install uv
+
+      - name: Sync dependencies with uv
+        run: uv sync
+
+      - name: Install build tools
+        run: uv add build
+
+      - name: Build wheel and sdist
+        run: uv run python -m build
+
+      - name: List artifacts
+        run: ls -la dist/
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-build
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+          retention-days: 7
+
+  create-release:
+    needs: [bump-version, build-package]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.bump-version.outputs.tag_name }}
+
+      - name: Download package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: package-build
+
+      - name: Prepare release files
+        run: |
+          # 创建发布目录
+          mkdir -p release-files
+          
+          # 复制包文件
+          mv *.whl release-files/ 2>/dev/null || true
+          mv *.tar.gz release-files/ 2>/dev/null || true
+          
+          # 检查文件是否存在
+          echo "Release files:"  
+          ls -la release-files/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.bump-version.outputs.tag_name }}
+          name: "Release ${{ needs.bump-version.outputs.tag_name }}"
+          body: |
+            # Release v${{ needs.bump-version.outputs.new_version }}
+            
+            🚀 Automated release created on ${{ github.event.head_commit.timestamp }}
+            
+            ## 📦 Assets
+            
+            - **FastX-Tui-Plugin-DEMFaultAnalyzer-${{ needs.bump-version.outputs.new_version }}-py3-none-any.whl** - Python wheel
+            - **FastX-Tui-Plugin-DEMFaultAnalyzer-${{ needs.bump-version.outputs.new_version }}.tar.gz** - Source distribution
+            
+            ## 🔧 Installation
+            
+            ```bash
+            # Using pip
+            pip install FastX-Tui-Plugin-DEMFaultAnalyzer-${{ needs.bump-version.outputs.new_version }}-py3-none-any.whl
+            
+            # Using uv
+            uv add FastX-Tui-Plugin-DEMFaultAnalyzer-${{ needs.bump-version.outputs.new_version }}-py3-none-any.whl
+            ```
+            
+            ## 📝 Changes
+            - Version bump to ${{ needs.bump-version.outputs.new_version }}
+            - Automated build and release
+            
+            ---
+            
+            *This release was automatically generated by GitHub Actions.*
+          draft: false
+          prerelease: false
+          files: |
+            release-files/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true  # 自动生成发布说明

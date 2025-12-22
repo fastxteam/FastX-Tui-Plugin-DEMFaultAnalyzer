@@ -16,8 +16,9 @@ classifiers = [
     "Topic :: System :: Logging",
 ]
 
-[project.dependencies]
-rich = ">=13.0.0"
+dependencies = [
+    "rich>=13.0.0",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -38,19 +39,18 @@ testpaths = ["tests"]
 [tool.black]
 line-length = 88
 target-version = ["py38", "py39", "py310"]
-include = "\.pyi?$"
-exclude = """
-(\.
-    |build
-    |dist
-    |venv
-    |__pycache__
-    |\.git
-    |\.github
-    |\.vscode
-    |\.idea
-)
-"""
+include = '.pyi?$'
+exclude = '''
+\.
+|build
+|dist
+|venv
+|__pycache__
+|\.git
+|\.github
+|\.vscode
+|\.idea
+'''
 
 [tool.flake8]
 max-line-length = 88
