@@ -76,6 +76,17 @@ jobs:
           with open('pyproject.toml', 'w') as f:
               toml.dump(data, f)
           
+          # Update version in fastx_tui_plugin.py
+          plugin_file_path = 'fastx_tui_plugin.py'
+          with open(plugin_file_path, 'r', encoding='utf-8') as f:
+              plugin_content = f.read()
+          
+          # Replace version string in the file
+          plugin_content = plugin_content.replace(f'version="{current_version}"', f'version="{new_version}"')
+          with open(plugin_file_path, 'w', encoding='utf-8') as f:
+              f.write(plugin_content)
+          print(f"Updated version in {plugin_file_path}")
+          
           # 使用新的 GITHUB_OUTPUT 语法
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write(f'new_version={new_version}\n')
@@ -93,7 +104,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pyproject.toml
+          git add pyproject.toml fastx_tui_plugin.py
           git commit -m "Bump version to v${{ steps.bump_version.outputs.new_version }}}"
           git push origin main
 
