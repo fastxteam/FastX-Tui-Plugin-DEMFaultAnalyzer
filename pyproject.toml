@@ -1,66 +1,37 @@
 [project]
 name = "FastX-Tui-Plugin-DEMFaultAnalyzer"
 description = "基于AUTOSAR CP和ETAS DEM的DTC故障状态分析工具"
-authors = [{ name = "FastX Team" }]
-version = "0.1.0"
+version = "0.1.1"
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.8.1"
-dependencies = [
-    "build>=1.2.2.post1",
-    "rich>=13.0.0",
-]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Operating System :: OS Independent",
-    "Topic :: Scientific/Engineering :: Automotive",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: System :: Logging",
-]
-
-[tool.setuptools]
-py-modules = [
-    "dem_fault_analyzer",
-    "fastx_plugin",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "black>=23.0.0",
-    "flake8>=6.0.0",
-]
+dependencies = [ "build>=1.2.2.post1", "rich>=13.0.0",]
+classifiers = [ "Programming Language :: Python :: 3", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: 3.9", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Operating System :: OS Independent", "Topic :: Scientific/Engineering :: Automotive", "Topic :: Software Development :: Libraries :: Python Modules", "Topic :: System :: Logging",]
+[[project.authors]]
+name = "FastX Team"
 
 [build-system]
-requires = ["setuptools>=61.0.0", "wheel>=0.37.0"]
+requires = [ "setuptools>=61.0.0", "wheel>=0.37.0",]
 build-backend = "setuptools.build_meta"
 
-[tool.pytest.ini_options]
-minversion = "7.0"
-addopts = "-v"
-testpaths = ["tests"]
+[project.optional-dependencies]
+dev = [ "pytest>=7.0.0", "black>=23.0.0", "flake8>=6.0.0",]
+
+[tool.setuptools]
+py-modules = [ "dem_fault_analyzer", "fastx_plugin",]
 
 [tool.black]
 line-length = 88
-target-version = ["py38", "py39", "py310"]
-include = '.pyi?$'
-exclude = '''
-\.
-|build
-|dist
-|venv
-|__pycache__
-|\.git
-|\.github
-|\.vscode
-|\.idea
-'''
+target-version = [ "py38", "py39", "py310",]
+include = ".pyi?$"
+exclude = "\\.\n|build\n|dist\n|venv\n|__pycache__\n|\\.git\n|\\.github\n|\\.vscode\n|\\.idea\n"
 
 [tool.flake8]
 max-line-length = 88
 exclude = ".git,__pycache__,venv,build,dist"
 ignore = "E203, W503"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-v"
+testpaths = [ "tests",]
