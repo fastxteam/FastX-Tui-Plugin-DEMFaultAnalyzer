@@ -32,10 +32,10 @@ class DEMFaultAnalyzerPlugin(Plugin):
             tags=["DEM", "DTC", "故障分析", "AUTOSAR", "ETAS"],  # 插件标签
             compatibility={"fastx-tui": ">=0.1.13"},  # 兼容性要求
             dependencies=[],  # 依赖项
-            repository="",  # 插件仓库
-            homepage="",  # 插件主页
+            repository="https://github.com/fastxteam/FastX-Tui-Plugin-DEMFaultAnalyzer",  # 插件仓库
+            homepage="https://github.com/fastxteam/FastX-Tui-Plugin-DEMFaultAnalyzer",  # 插件主页
             license="MIT",  # 许可证
-            last_updated="2025-12-22",  # 最后更新时间
+            last_updated="2025-12-23",  # 最后更新时间
             rating=5.0,  # 评分
             downloads=0  # 下载次数
         )
