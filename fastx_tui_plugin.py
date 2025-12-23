@@ -46,7 +46,7 @@ class DEMFaultAnalyzerPlugin(Plugin):
             name="DEM故障分析器",
             version=self.get_version(),
             author="FastX Team",
-            description="基于AUTOSAR CP和ETAS DEM的DTC故障状态分析工具，支持故障状态位解析和分析",
+            description="基于AUTOSAR CP DEM故障状态分析工具,支持故障状态位解析和分析",
             category="诊断",  # 插件分类
             tags=["DEM", "DTC", "故障分析", "AUTOSAR", "ETAS"],  # 插件标签
             compatibility={"fastx-tui": ">=0.1.13"},  # 兼容性要求
