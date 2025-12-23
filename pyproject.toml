@@ -1,7 +1,7 @@
 [project]
 name = "FastX-Tui-Plugin-DEMFaultAnalyzer"
 description = "基于AUTOSAR CP和ETAS DEM的DTC故障状态分析工具"
-version = "0.1.5"
+version = "0.1.6"
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.8.1"
