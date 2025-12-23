@@ -5,6 +5,8 @@ FastX-Tui DEM Fault Analyzer Plugin - 入口文件
 业务逻辑请参考 dem_fault_analyzer.py
 """
 
+import os
+import toml
 from typing import List, Dict
 from core.plugin_manager import Plugin, PluginInfo
 from core.menu_system import MenuSystem
@@ -21,11 +23,28 @@ class DEMFaultAnalyzerPlugin(Plugin):
         super().__init__()
         self.business = None
     
+    @classmethod
+    def get_version(cls) -> str:
+        """从pyproject.toml获取当前版本号"""
+        try:
+            # 获取当前文件所在目录
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            # 构建pyproject.toml的路径
+            pyproject_path = os.path.join(current_dir, "pyproject.toml")
+            # 读取文件
+            with open(pyproject_path, "r", encoding="utf-8") as f:
+                data = toml.load(f)
+            # 返回版本号
+            return data["project"]["version"]
+        except Exception as e:
+            # 如果读取失败，返回默认版本
+            return "1.0.0"
+    
     def get_info(self) -> PluginInfo:
         """获取插件信息"""
         return PluginInfo(
             name="DEM故障分析器",
-            version="1.0.0",
+            version=self.get_version(),
             author="FastX Team",
             description="基于AUTOSAR CP和ETAS DEM的DTC故障状态分析工具，支持故障状态位解析和分析",
             category="诊断",  # 插件分类
