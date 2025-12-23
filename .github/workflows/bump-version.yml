@@ -83,9 +83,32 @@ jobs:
           
           # Replace version string in the file
           plugin_content = plugin_content.replace(f'version="{current_version}"', f'version="{new_version}"')
+          
+          # Update last_updated to current date
+          from datetime import datetime
+          current_date = datetime.now().strftime("%Y-%m-%d")
+          # 使用正则表达式替换last_updated值
+          import re
+          plugin_content = re.sub(r'last_updated="[0-9]{4}-[0-9]{2}-[0-9]{2}"', f'last_updated="{current_date}"', plugin_content)
+          
+          # Update repository URL if it's empty
+          if 'repository=""' in plugin_content:
+              # 获取当前仓库URL
+              repo_url = subprocess.check_output(['git', 'config', '--get', 'remote.origin.url'], text=True).strip()
+              plugin_content = plugin_content.replace('repository=""', f'repository="{repo_url}"')
+          
+          # Update homepage URL if it's empty
+          if 'homepage=""' in plugin_content:
+              # 使用仓库URL作为homepage
+              repo_url = subprocess.check_output(['git', 'config', '--get', 'remote.origin.url'], text=True).strip()
+              # 转换为HTTPS格式（如果是SSH格式）
+              if repo_url.startswith('git@github.com:'):
+                  repo_url = repo_url.replace('git@github.com:', 'https://github.com/')
+              plugin_content = plugin_content.replace('homepage=""', f'homepage="{repo_url}"')
+          
           with open(plugin_file_path, 'w', encoding='utf-8') as f:
               f.write(plugin_content)
-          print(f"Updated version in {plugin_file_path}")
+          print(f"Updated version and metadata in {plugin_file_path}")
           
           # 使用新的 GITHUB_OUTPUT 语法
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
