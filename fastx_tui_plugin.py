@@ -7,7 +7,8 @@ FastX-Tui DEM Fault Analyzer Plugin - 入口文件
 
 import os
 import toml
-from typing import List, Dict
+import json
+from typing import List, Dict, Any
 from core.plugin_manager import Plugin, PluginInfo
 from core.menu_system import MenuSystem
 from dem_fault_analyzer import DEMFaultAnalyzer
@@ -75,3 +76,56 @@ class DEMFaultAnalyzerPlugin(Plugin):
         """注册插件命令到菜单系统"""
         # 调用业务逻辑注册命令
         self.business.register_commands(menu_system)
+    
+    def get_manual(self) -> str:
+        """获取插件手册，返回Markdown格式的帮助内容
+        
+        Returns:
+            str: Markdown格式的插件手册，从manual.md文件中读取
+        """
+        try:
+            # 获取插件目录路径
+            if self.plugin_path:
+                manual_path = os.path.join(self.plugin_path, "manual.md")
+                if os.path.exists(manual_path):
+                    with open(manual_path, "r", encoding="utf-8") as f:
+                        return f.read()
+            # 如果文件不存在或plugin_path未设置，返回默认内容
+            return "# 插件手册\n\n该插件未提供帮助文档。"
+        except Exception as e:
+            self.log_error(f"读取插件手册失败: {e}")
+            return "# 插件手册\n\n读取帮助文档失败。"
+    
+    def get_config_schema(self) -> Dict[str, Any]:
+        """获取插件配置模式，从config_schema.json文件中读取
+        
+        Returns:
+            Dict[str, Any]: 配置项模式，包含配置名、类型、默认值、说明、可选值等
+        """
+        try:
+            # 获取插件目录路径
+            if self.plugin_path:
+                config_schema_path = os.path.join(self.plugin_path, "config_schema.json")
+                if os.path.exists(config_schema_path):
+                    with open(config_schema_path, "r", encoding="utf-8") as f:
+                        return json.load(f)
+            # 如果文件不存在或plugin_path未设置，返回默认配置
+            return {
+                "enabled": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "是否启用该插件",
+                    "required": True
+                }
+            }
+        except Exception as e:
+            self.log_error(f"读取配置模式失败: {e}")
+            # 返回默认配置
+            return {
+                "enabled": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "是否启用该插件",
+                    "required": True
+                }
+            }
