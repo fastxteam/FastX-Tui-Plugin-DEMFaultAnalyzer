@@ -117,7 +117,7 @@ jobs:
 
       - name: Debug output
         run: |
-          echo "bump_version.new_version: ${{ steps.bump_version.outputs.new_version }}}"
+          echo "bump_version.new_version: ${{ steps.bump_version.outputs.new_version }}"
           if [ -z "${{ steps.bump_version.outputs.new_version }}" ]; then
             echo "ERROR: new_version is empty!"
             exit 1
