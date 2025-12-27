@@ -240,9 +240,14 @@ class ISO14229DTCSTATUS:
         }
 
     @staticmethod
-    def format_analysis(status_hex: str):
+    def format_analysis(status_hex: str) -> str:
         """格式化分析结果 - 合并为一个Panel"""
         result = ISO14229DTCSTATUS.parse_status_code(status_hex)
+
+        # 使用StringIO捕获输出
+        from io import StringIO
+        output = StringIO()
+        console = Console(file=output, width=146)
 
         # 构建完整的Panel内容
         content_parts = []
@@ -306,7 +311,9 @@ class ISO14229DTCSTATUS:
             padding=(1, 2)
         )
 
-        return analysis_panel
+        console.print(analysis_panel)
+
+        return output.getvalue()
 
     @staticmethod
     def _render_bit_blocks(result: Dict) -> Columns:
@@ -533,12 +540,8 @@ class DEMFaultAnalyzer:
             if status_int < 0 or status_int > 255:
                 return "[red]❌ 无效的DTC状态码！状态码必须是1字节（0x00-0xFF）。[/red]"
 
-            # 创建Console对象直接打印Panel
-            console = Console(width=146)
-            panel = ISO14229DTCSTATUS.format_analysis(status_input)
-            console.print(panel)
-            
-            return ""
+            # 调用分析函数
+            return ISO14229DTCSTATUS.format_analysis(status_input)
 
         except ValueError:
             return "[red]❌ 无效的十六进制格式！请输入有效的DTC状态码。[/red]"
