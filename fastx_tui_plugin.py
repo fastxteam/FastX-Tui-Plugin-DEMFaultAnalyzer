@@ -55,7 +55,7 @@ class DEMFaultAnalyzerPlugin(Plugin):
             repository="https://github.com/fastxteam/FastX-Tui-Plugin-DEMFaultAnalyzer",  # 插件仓库
             homepage="https://github.com/fastxteam/FastX-Tui-Plugin-DEMFaultAnalyzer",  # 插件主页
             license="MIT",  # 许可证
-            last_updated="2025-12-24",  # 最后更新时间
+            last_updated="2025-12-27",  # 最后更新时间
             rating=5.0,  # 评分
             downloads=0  # 下载次数
         )
