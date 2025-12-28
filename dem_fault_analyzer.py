@@ -4,16 +4,17 @@ FastX-Tui DEM Fault Analyzer Plugin - 业务逻辑模块
 基于AUTOSAR CP和ETAS DEM的DTC故障状态分析工具
 """
 
-from typing import List, Dict, Optional
 from dataclasses import dataclass
-from core.menu_system import MenuSystem, ActionItem, CommandType
-from rich.table import Table
+
+from rich.box import ROUNDED, SIMPLE, SQUARE
+from rich.columns import Columns
 from rich.console import Console, Group
 from rich.panel import Panel
-from rich.text import Text
-from rich.box import ROUNDED, SQUARE, SIMPLE
-from rich.columns import Columns
 from rich.rule import Rule
+from rich.table import Table
+from rich.text import Text
+
+from core.menu_system import ActionItem, CommandType, MenuSystem
 
 
 @dataclass
@@ -26,8 +27,8 @@ class BitInfo:
     desc_true: str  # 置位时的描述
     desc_false: str  # 复位时的描述
     detailed_desc: str  # 详细描述
-    set_conditions: List[str]  # 置位条件
-    clear_conditions: List[str]  # 清除条件
+    set_conditions: list[str]  # 置位条件
+    clear_conditions: list[str]  # 清除条件
     mask: int  # 位掩码
 
 
@@ -205,7 +206,7 @@ pendingDTC 仍然为 1，再下一个operation cycle中，故障仍然不存在�
     ]
 
     @classmethod
-    def get_bit_info(cls, bit: int) -> Optional[BitInfo]:
+    def get_bit_info(cls, bit: int) -> BitInfo | None:
         """获取指定bit的信息"""
         for config in cls.BIT_CONFIGS:
             if config.bit == bit:
@@ -213,7 +214,7 @@ pendingDTC 仍然为 1，再下一个operation cycle中，故障仍然不存在�
         return None
 
     @classmethod
-    def get_all_bits(cls) -> List[BitInfo]:
+    def get_all_bits(cls) -> list[BitInfo]:
         """获取所有bit信息"""
         return cls.BIT_CONFIGS
 
@@ -222,7 +223,7 @@ class ISO14229DTCSTATUS:
     """DTC状态位解析类"""
 
     @staticmethod
-    def parse_status_code(status_hex: str) -> Dict:
+    def parse_status_code(status_hex: str) -> dict:
         """解析DTC状态码"""
         # 转换为整数
         status_int = int(status_hex.replace('0x', '').replace('0X', ''), 16)
@@ -316,7 +317,7 @@ class ISO14229DTCSTATUS:
         return output.getvalue()
 
     @staticmethod
-    def _render_bit_blocks(result: Dict) -> Columns:
+    def _render_bit_blocks(result: dict) -> Columns:
         """渲染方块视图 - 使用原来的版本但确保一行显示"""
         blocks = []
 
@@ -362,7 +363,7 @@ class ISO14229DTCSTATUS:
         return Columns(blocks, padding=1, expand=False)
 
     @staticmethod
-    def _render_bit_table(result: Dict) -> Table:
+    def _render_bit_table(result: dict) -> Table:
         """渲染表格视图 - 完整显示，不截断"""
         # 创建表格
         table = Table(
